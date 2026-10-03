@@ -1,0 +1,50 @@
+
+# =============================================================================
+# KAN-Fine++ Requirements
+# Compatible with FHIST benchmark + KAN integration
+# =============================================================================
+
+# --- Core Deep Learning ---
+torch>=1.10.0
+torchvision>=0.11.1
+timm>=0.5.5
+
+# --- KAN Libraries ---
+pykan>=0.2.0              # Official KAN implementation (https://github.com/KindXiaoming/pykan)
+# efficient-kan>=0.1.0    # Lightweight alternative (uncomment if pykan is too slow)
+
+# --- FHIST Data Pipeline ---
+tfrecord>=1.12
+protobuf>=3.15.8
+crc32c>=2.2
+
+# --- Scientific Computing ---
+numpy>=1.21.2
+scipy>=1.6.0              # For Wilcoxon signed-rank test, statistical analysis
+scikit-learn>=0.24.1      # For metrics (balanced accuracy, F1, etc.)
+pandas>=1.2.3
+
+# --- Visualization ---
+matplotlib>=3.3.4
+seaborn>=0.11.1
+
+# --- XAI / Attribution ---
+# captum>=0.6.0           # Optional: for Grad-CAM baseline comparison
+
+# --- Experiment Tracking ---
+tqdm>=4.62.3
+tensorboard-logger>=0.1.0
+PyYAML>=5.3.1
+
+# --- Image Processing ---
+opencv-python>=4.5.1.48
+Pillow>=8.1.2
+
+# --- Optimization (for MetaOptNet baseline) ---
+cvxpy>=1.1.13
+qpth>=0.0.2
+ecos>=2.0.7.post1
+
+# --- Misc ---
+requests>=2.27.1
+joblib>=1.0.1

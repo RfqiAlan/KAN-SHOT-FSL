@@ -15,7 +15,7 @@ import scipy.stats
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from kan_shot.methods import KANProtoNet
+from kan_shot.methods import KANProtoNet, MLPProtoNet, ProtoNet
 
 def load_image(img_path: Path, transform):
     img = Image.open(img_path).convert('RGB')
@@ -38,6 +38,7 @@ def main():
     parser.add_argument("--ft_steps", type=int, default=50, help="Number of fine-tuning steps per episode")
     parser.add_argument("--ft_lr", type=float, default=0.0005, help="Learning rate for fine-tuning")
     parser.add_argument("--ft_layers", type=str, default="layer4", choices=["kan", "layer4", "all", "all_freeze_spline"], help="Which parts of the model to fine-tune")
+    parser.add_argument("--override_method", type=str, default=None, help="Override the method in config (e.g. ProtoNet)")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,7 +51,9 @@ def main():
     
     # Load Backbone
     backbone_path = ckpt.get("backbone_checkpoint", None)
-    base_model = models.resnet18(pretrained=False)
+    if backbone_path and "checkpoints" in backbone_path:
+        backbone_path = "checkpoints" + backbone_path.split("checkpoints")[-1]
+    base_model = models.resnet18(weights=None)
     base_model.fc = nn.Identity()
     raw_backbone = torch.load(backbone_path, map_location="cpu", weights_only=False)
     state_b = raw_backbone.get("state_dict", raw_backbone)
@@ -59,8 +62,20 @@ def main():
     base_model = base_model.to(device)
 
     # Initialize Base Metric Method
-    base_method = KANProtoNet(m_args)
-    base_method.load_state_dict(ckpt["method_state_dict"], strict=True)
+    method_name = args.override_method if args.override_method else config.get("method")
+    
+    if method_name == "MLPProtoNet":
+        base_method = MLPProtoNet(m_args)
+        method_prefix = "mlp"
+    elif method_name == "KANProtoNet":
+        base_method = KANProtoNet(m_args)
+        method_prefix = "kan"
+    else:
+        base_method = ProtoNet(m_args)
+        method_prefix = "protonet"
+        
+    if not args.override_method:
+        base_method.load_state_dict(ckpt["method_state_dict"], strict=True)
     base_method = base_method.to(device)
 
     # Transform
@@ -170,13 +185,18 @@ def main():
     print(f"Mean Accuracy: {mean_acc * 100:.2f}% ± {conf_int * 100:.2f}% (95% CI)")
     print("=======================================================\n")
 
+    # Extract seed from manifest filename if possible (e.g., episodes/lc5way_shot5_seed2021.json -> seed2021)
+    seed_str = "unknown"
+    if "_seed" in args.manifest:
+        seed_str = args.manifest.split("_seed")[-1].split(".")[0]
+        
     # Save CSV
-    out_file = os.path.join(args.output_dir, f"kan_lc5way_5shot_finetune_{args.ft_layers}.csv")
+    out_file = os.path.join(args.output_dir, f"{method_prefix}_lc5way_5shot_finetune_{args.ft_layers}_seed{seed_str}.csv")
     with open(out_file, "w") as f:
         f.write("episode,accuracy\n")
         for idx, acc in enumerate(all_acc):
             f.write(f"{idx},{acc}\n")
-    print(f"✅ Saved CSV to {out_file}")
+    print(f"Saved CSV to {out_file}")
 
 if __name__ == "__main__":
     main()

@@ -25,6 +25,10 @@ def main():
     parser.add_argument("--metric", type=str, required=True)
     parser.add_argument("--manifest", type=str, required=True)
     parser.add_argument("--image_size", type=int, default=84)
+
+
+
+    
     parser.add_argument("--episodes", type=int, default=50)
     args = parser.parse_args()
 
@@ -35,7 +39,9 @@ def main():
     m_args = argparse.Namespace(**config)
     
     backbone_path = ckpt.get("backbone_checkpoint", None)
-    model = models.resnet18(pretrained=False)
+    if backbone_path and "checkpoints" in backbone_path:
+        backbone_path = "checkpoints" + backbone_path.split("checkpoints")[-1]
+    model = models.resnet18(weights=None)
     model.fc = nn.Identity()
     raw_backbone = torch.load(backbone_path, map_location="cpu", weights_only=False)
     state_b = raw_backbone.get("state_dict", raw_backbone)
@@ -121,7 +127,7 @@ def main():
                 print(f"  Severity {severity}: {avg_acc*100:.2f}%")
                 f.write(f"  Severity {severity}: {avg_acc*100:.2f}%\n")
     print("=======================================================\n")
-    print("✅ Saved Robustness summary to results/robustness_results.txt")
+    print("Saved Robustness summary to results/robustness_results.txt")
 
 if __name__ == "__main__":
     main()

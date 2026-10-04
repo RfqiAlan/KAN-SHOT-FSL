@@ -40,7 +40,7 @@ def test_methods_and_gradient_flow():
     device = torch.device("cpu")
 
     # ResNet18 backbone
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(weights=None)
     model.fc = nn.Identity()
     model.eval()
     for p in model.parameters():

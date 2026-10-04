@@ -77,7 +77,7 @@ def main():
     print(f"Validation on {len(val_dataset)} images.")
 
     # Model
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(weights=None)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     model = model.to(device)
 

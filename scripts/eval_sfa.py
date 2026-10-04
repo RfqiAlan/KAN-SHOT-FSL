@@ -37,7 +37,7 @@ def main():
     m_args = argparse.Namespace(**config)
     
     backbone_path = ckpt.get("backbone_checkpoint", None)
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(weights=None)
     model.fc = nn.Identity()
     raw_backbone = torch.load(backbone_path, map_location="cpu", weights_only=False)
     state_b = raw_backbone.get("state_dict", raw_backbone)

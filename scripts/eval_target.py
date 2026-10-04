@@ -54,7 +54,7 @@ def main():
     backbone_path = ckpt.get("backbone_checkpoint", None)
     assert backbone_path is not None, "Checkpoint must store 'backbone_checkpoint' path"
     
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(weights=None)
     model.fc = nn.Identity()
 
     raw_backbone = torch.load(backbone_path, map_location="cpu", weights_only=False)
